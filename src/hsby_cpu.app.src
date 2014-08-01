@@ -1,0 +1,12 @@
+{application, hsby_cpu,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { hsby_cpu_app, "default.ini"}},
+  {env, []}
+ ]}.
