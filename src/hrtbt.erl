@@ -16,14 +16,16 @@ runfunc() ->
 	].
 
 init([Arg,Tag]) -> 
-	io:format("......... hrtbt ~p ~n",[Tag]),
-	Arg#task{func=Tag}.
+	util:log({init,hrtbt,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 create_hrtbt_buf([Arg,T,Tag]) -> 
-	io:format("......... hrtbt ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,hrtbt,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 send_buf([Arg,T,Tag]) -> 
-	io:format("......... hrtbt ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,hrtbt,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
+update_hrtbt(Hrtbt,Task) ->
+	Task.

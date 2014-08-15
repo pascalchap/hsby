@@ -15,12 +15,15 @@
 -export([init/1, handle_info/3, terminate/3, code_change/4, handle_event/3, handle_sync_event/4]).
 
 %% export states
--export([init_hsby/2, init_hsby/3]).
+-export([init_hsby/2, init_hsby/3,get_new_hsby_state/1]).
 
 %% INTERFACES %%
 
 start_link(Args) ->
 	gen_fsm:start_link({local, ?SERVER}, ?MODULE, Args, []).
+
+get_new_hsby_state(Args) ->
+	gen_fsm:sync_send_all_state_event(?SERVER, {get_new_state,Args}).
 
 %% CALLBACK FUNCTIONS %%
 %% @private
@@ -36,7 +39,7 @@ start_link(Args) ->
 %%		Timeout = int()>0 | infinity
 %%		Reason = term()
 
-init(Args) ->
+init(_Args) ->
 	{ok, init_hsby, #state{}}.
 
 %% @private
@@ -120,6 +123,9 @@ handle_event(_Event, StateName, State) ->
 %%		Timeout = int()>0 | infinity
 %%		Reason = term()
 
+handle_sync_event({get_new_state,Args}, _From, StateName, State) ->
+	 %% io:format("--->>> Hsby fsm evaluation~n"),
+	{reply, Args, StateName, State};
 handle_sync_event(_Event, _From, StateName, State) ->
 	{reply, ok, StateName, State}.
 

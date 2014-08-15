@@ -26,10 +26,10 @@ start_link(Init_File) ->
 
 init(Init_File) ->
 	Childs = [?CHILD(plcmanager,plcmanager,worker,Init_File),
-			  ?CHILD(cpu_fsm,cpu_fsm,worker,[]),
+			  %% ?CHILD(cpu_fsm,cpu_fsm,worker,[]),
 			  ?CHILD(hsby_fsm,hsby_fsm,worker,[]),
 			  ?CHILD(diagmanager,diagmanager,worker,[])],
-    {ok, { {one_for_one, 5, 10}, Childs} }.
+    {ok, { {one_for_all, 5, 10}, Childs} }.
 
 
 

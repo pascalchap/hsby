@@ -22,39 +22,46 @@ runfunc() ->
 	].
 
 init([Arg,Tag]) -> 
-	io:format("......... mast ~p ~n",[Tag]),
-	Arg#task{func=Tag}.
+	util:log({init,mast,[Tag,maps:get(remain,Arg)]}),
+	util:update([{hsbyddt,?HSBYDDT},{func,Tag}],Arg).
 
 send_app_data([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 get_hsby_diag([Arg,T,Tag]) ->
 	Diag = diagmanager:get_diag(), 
-	io:format("......... mast ~p (time ~p, progress ~p, diag ~p)~n",[Tag,T,Arg#task.remain,Diag#diag.count]),
-	Arg#task{diag = Diag, func=Tag}.
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	util:update([{diag,Diag},{func,Tag}],Arg).
 
-hsby_fsm([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+hsby_fsm([Arg,T,Tag]) ->
+	Hsby_state = hsby_fsm:get_new_hsby_state(maps:get(hsbyddt,Arg)),
+	Hsbyddt = evalddt(Hsby_state,Arg),
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	util:update([{func,Tag},{hsbyddt,Hsbyddt}],Arg).
 
-put_hsby_ddt([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+put_hsby_ddt([Arg,T,Tag]) ->
+	plcmanager:update_hrtbt_info(maps:get(hsbyddt,Arg)),
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 input([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 exe([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 out([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 interscan([Arg,T,Tag]) -> 
-	io:format("......... mast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,mast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
+
+%% Private functions
+
+evalddt(Hsby_state,_Arg) -> Hsby_state.

@@ -19,26 +19,26 @@ runfunc() ->
 	].
 
 init([Arg,Tag]) -> 
-	io:format("......... fast ~p ~n",[Tag]),
-	Arg#task{func=Tag}.
+	util:log({init,fast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 send_app_data([Arg,T,Tag]) -> 
-	io:format("......... fast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,fast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 input([Arg,T,Tag]) -> 
-	io:format("......... fast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,fast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 exe([Arg,T,Tag]) -> 
-	io:format("......... fast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,fast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 out([Arg,T,Tag]) -> 
-	io:format("......... fast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,fast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 interscan([Arg,T,Tag]) -> 
-	io:format("......... fast ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,fast,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 

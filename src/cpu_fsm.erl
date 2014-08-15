@@ -34,7 +34,7 @@ start_link(Args) ->
 %%		Timeout = int()>0 | infinity
 %%		Reason = term()
 
-init(Args) ->
+init(_Args) ->
 	{ok, initial, #state{}}.
 
 %% @private

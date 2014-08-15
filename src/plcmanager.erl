@@ -2,154 +2,215 @@
 
 -include("hsby.hrl").
 
--behaviour(gen_server).
+-behaviour(gen_fsm).
 
--define(SERVER, plcmanager).
--define(GEN_EVENT, plcmanager_event).
+-define(SERVER, ?MODULE).
 
--record(state, {time = 0, curtask = none, suspended = []}).
+-define(STATE, #{time => 0, curtask => none, suspended => [], tick => undefined, plc => maps:new()}).
 
 %% export interfaces
--export([start_link/1,stop/1,task_complete/1]).
+-export([start_link/1,stop/1,task_complete/1,update_hrtbt_info/1,get_plc_state/0,tick/1]).
 
 %% export callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([init/1, handle_info/3, terminate/3, code_change/4, handle_event/3, handle_sync_event/4]).
+
+%% export states
+-export([noconf/2, noconf/3]).
 
 %% INTERFACES %%
 
-start_link(Args) ->
+start_link(InitFile) ->
 	gen_event:start_link({local,?GEN_EVENT}),
-	gen_server:start_link({local, ?SERVER}, ?MODULE, Args, []).
+	gen_event:start_link({local,?LOGGER}),
+	gen_fsm:start_link({local, ?SERVER}, ?MODULE, InitFile, []).
 
 stop(Name) ->
-	gen_event:stop(Name).
+	gen_fsm:stop(Name).
 
 task_complete(Name) ->
-	gen_server:cast(?SERVER,{task_complete,Name}).
+	gen_fsm:send_event(?SERVER,{task_complete,Name}).
 
+update_hrtbt_info(Hrtbt) ->
+	gen_event:notify(?GEN_EVENT,{update_hrtbt_info,Hrtbt}).
+
+get_plc_state() ->
+	gen_fsm:sync_send_all_state_event(?SERVER, get_plc_state).
+
+tick(T) ->
+	gen_fsm:send_event(?SERVER,{tick,T}).
 %% CALLBACK FUNCTIONS %%
 %% @private
-
 %%	init(Args) -> Result
-%% 
+%%
 %%	Types:
 %%		Args = term()
-%%		Result = {ok,State} | {ok,State,Timeout} | {ok,State,hibernate}
-%%		| {stop,Reason} | ignore
-%%		State = term()
-%%		Timeout = int()>=0 | infinity
+%%		Result = {ok,StateName,StateData} | {ok,StateName,StateData,Timeout}
+%%			| {ok,StateName,StateData,hibernate}
+%%			| {stop,Reason} | ignore
+%%		StateName = atom()
+%%		StateData = term()
+%%		Timeout = int()>0 | infinity
 %%		Reason = term()
 
 init(InitFile) ->
 	{ok,Params} = util:get_term(InitFile),
-	Tasks = proplists:get_value(tasks,Params),
-	[M:F(complete(A)) || {M,F,A} <- Tasks],
-	ets:new(task,[named_table,ordered_set]),
-	[insert_task(complete(A),0) || {_,_,A} <- Tasks],
-	spawn_link(util,tick,[?TICK,tick,self()]),
-	{ok, #state{}}.
+	init_tasks(proplists:get_value(tasks,Params)),
+	Plc = init_plc(proplists:get_value(plc,Params)),
+	Tick = proplists:get_value(tick,Params,?TICK),
+	spawn_link(util,tick,[Tick,{?MODULE,tick,[],fun([],V) -> [V] end}]),
+	{ok, noconf, util:update([{plc,Plc},{tick,Tick}],?STATE)}.
 
-%%	handle_call(Request, From, State) -> Result
-%%		
-%%	Types:
-%%		Request = term()
-%%		From = {pid(),Tag}
-%%		State = term()
-%%		Result = {reply,Reply,NewState} | {reply,Reply,NewState,Timeout}
-%%			| {reply,Reply,NewState,hibernate}
-%%			| {noreply,NewState} | {noreply,NewState,Timeout}
-%%			| {noreply,NewState,hibernate}
-%%			| {stop,Reason,Reply,NewState} | {stop,Reason,NewState}
-%%		Reply = term()
-%%		NewState = term()
-%%		Timeout = int()>=0 | infinity
-%%		Reason = term()
-
-handle_call(_Request, _From, State) ->
-	{reply, {error, unknown_call}, State}.
-
-%%	handle_cast(Request, State) -> Result
+%% @private
+%%	StateName(Event, StateData) -> Result
 %%	
 %%	Types:
-%%		Request = term()
-%%		State = term()
-%%		Result = {noreply,NewState} | {noreply,NewState,Timeout}
-%%		 	| {noreply,NewState,hibernate}
-%%		 	| {stop,Reason,NewState}
-%%		NewState = term()
-%%		Timeout = int()>=0 | infinity
+%%		Event = timeout | term()
+%%		StateData = term()
+%%		Result = {next_state,NextStateName,NewStateData}
+%%			| {next_state,NextStateName,NewStateData,Timeout}
+%%			| {next_state,NextStateName,NewStateData,hibernate}
+%%			| {stop,Reason,NewStateData}
+%%		NextStateName = atom()
+%%		NewStateData = term()
+%%		Timeout = int()>0 | infinity
 %%		Reason = term()
 
-handle_cast({task_complete,Name}, #state{suspended = Susp} = State) ->
-	io:format("ok received task ~p completed~n",[Name]),
-	{NewCur,NewSusp} = case Susp of
+noconf({tick,_V},State) ->
+	{NewCurTask,NewSusp} = tick(T=maps:get(time,State),maps:get(curtask,State),maps:get(suspended,State)),
+	{next_state, 
+		noconf, 
+		util:update([{time,T+1},{curtask,NewCurTask},{suspended,NewSusp}],State),
+		2 * maps:get(tick,State)};
+noconf({task_complete,Name},State) ->
+	util:log({T = maps:get(time,State),scheduler,[completed,Name]}),
+	{NewCur,NewSusp} = case maps:get(suspended,State) of
 		[HTask={_Prio,_Per,NewName}|TSusp] -> 
 			R = task:resume(NewName),
-			io:format("~p --> task resume : ~p~n",[State#state.time, R]),
+			util:log({T,scheduler,[resume,R]}),
 			{HTask,TSusp};
 		[] ->
 			{none,[]}
 	end,
-	{noreply, State#state{suspended=NewSusp,curtask=NewCur}};
-handle_cast(_Msg, State) ->
-	{noreply, State}.
+	{next_state, noconf, util:update([{suspended,NewSusp},{curtask,NewCur}],State)};
+noconf(_Event, State) ->
+	{next_state, noconf, State}.
 
-%%	handle_info(Info, State) -> Result
-%%	
+%% @private
+%%	StateName(Event, From, StateData) -> Result
+%%
 %%	Types:
-%%		Info = timeout | term()
-%%		State = term()
-%%		Result = {noreply,NewState} | {noreply,NewState,Timeout}
-%%		 	| {noreply,NewState,hibernate}
-%%		 	| {stop,Reason,NewState}
-%%		NewState = term()
-%%		Timeout = int()>=0 | infinity
+%%		Event = term()
+%%		From = {pid(),Tag}
+%%		StateData = term()
+%%		Result = {reply,Reply,NextStateName,NewStateData}
+%%			| {reply,Reply,NextStateName,NewStateData,Timeout}
+%%			| {reply,Reply,NextStateName,NewStateData,hibernate}
+%%			| {next_state,NextStateName,NewStateData}
+%%			| {next_state,NextStateName,NewStateData,Timeout}
+%%			| {next_state,NextStateName,NewStateData,hibernate}
+%%			| {stop,Reason,Reply,NewStateData} | {stop,Reason,NewStateData}
+%%		Reply = term()
+%%		NextStateName = atom()
+%%		NewStateData = term()
+%%		Timeout = int()>0 | infinity
+%%		Reason = normal | term()
+ 
+ noconf(_Event, _From, State) ->
+	{reply, ok, noconf, State}.
+
+%% @private
+%%	handle_event(Event, StateName, StateData) -> Result
+%%
+%%	Types:
+%%		Event = term()
+%%		StateName = atom()
+%%		StateData = term()
+%%		Result = {next_state,NextStateName,NewStateData}
+%%			| {next_state,NextStateName,NewStateData,Timeout}
+%%			| {next_state,NextStateName,NewStateData,hibernate}
+%%			| {stop,Reason,NewStateData}
+%%		NextStateName = atom()
+%%		NewStateData = term()
+%%		Timeout = int()>0 | infinity
+%%		Reason = term()
+
+handle_event(_Event, StateName, State) ->
+	{next_state, StateName, State}.
+
+%% @private
+%%	handle_sync_event(Event, From, StateName, StateData) -> Result
+%%
+%%	Types:
+%%		Event = term()
+%%		From = {pid(),Tag}
+%%		StateName = atom()
+%%		StateData = term()
+%%		Result = {reply,Reply,NextStateName,NewStateData}
+%%			| {reply,Reply,NextStateName,NewStateData,Timeout}
+%%			| {reply,Reply,NextStateName,NewStateData,hibernate}
+%%			| {next_state,NextStateName,NewStateData}
+%%			| {next_state,NextStateName,NewStateData,Timeout}
+%%			| {next_state,NextStateName,NewStateData,hibernate}
+%%			| {stop,Reason,Reply,NewStateData} | {stop,Reason,NewStateData}
+%%		Reply = term()
+%%		NextStateName = atom()
+%%		NewStateData = term()
+%%		Timeout = int()>0 | infinity
+%%		Reason = term()
+
+handle_sync_event(get_plc_state, _From, StateName, State) ->
+	{reply, State, StateName, State};
+handle_sync_event(_Event, _From, StateName, State) ->
+	{reply, ok, StateName, State}.
+
+%% @private
+%%	handle_info(Info, StateName, StateData) -> Result
+%%
+%%	Types:
+%%		Info = term()
+%%		StateName = atom()
+%%		StateData = term()
+%%		Result = {next_state,NextStateName,NewStateData}
+%%			| {next_state,NextStateName,NewStateData,Timeout}
+%%			| {next_state,NextStateName,NewStateData,hibernate}
+%%			| {stop,Reason,NewStateData}
+%%		NextStateName = atom()
+%%		NewStateData = term()
+%%		Timeout = int()>0 | infinity
 %%		Reason = normal | term()
 
-handle_info(E = {tick,_}, #state{time = T, curtask = CurTask, suspended = Susp} = State) ->
-	%% io:format("tick ~p: curtask : ~p, suspended : ~p~n",[T,CurTask,Susp]),
-	{NewCurTask,NewSusp} = case ets:lookup(task,T) of
-		[{T,List}] -> schedule(List,T,CurTask,Susp);
-		[] -> {CurTask,Susp}
-	end,
-	gen_event:notify(?GEN_EVENT,E),
-	{noreply, State#state{time = T+1, curtask = NewCurTask, suspended = NewSusp}};
-handle_info(_Info, State) ->
-	{noreply, State}.
+handle_info(_Info, StateName, State) ->
+	{next_state, StateName, State}.
 
-%%	terminate(Reason, State)
-%%	
+%% @private
+%%	terminate(Reason, StateName, StateData)
+%%
 %%	Types:
 %%		Reason = normal | shutdown | {shutdown,term()} | term()
-%%		State = term()
+%%		StateName = atom()
+%%		StateData = term()
 
-terminate(_Reason, _State) ->
+terminate(_Reason, _StateName, _State) ->
 	ok.
 
-%%	code_change(OldVsn, State, Extra) -> {ok, NewState} | {error, Reason}
+%% @private
+%%	code_change(OldVsn, StateName, StateData, Extra) -> {ok, NextStateName, NewStateData}
 %%
 %%	Types:
 %%		OldVsn = Vsn | {down, Vsn}
 %%		Vsn = term()
-%%		State = NewState = term()
+%%		StateName = NextStateName = atom()
+%%		StateData = NewStateData = term()
 %%		Extra = term()
-%%		Reason = term()
 
-code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+code_change(_OldVsn, StateName, State, _Extra) ->
+	{ok, StateName, State}.
 
 %% LOCAL FUNCTIONS %%
 
 complete(A) ->
-	util:add_default_key(name,task,
-		util:add_default_key(period,50000,
-			util:add_default_key(exe,15000,
-				util:add_default_key(mode,waiting,
-					util:add_default_key(run,frozen,
-						util:add_default_key(manager,?GEN_EVENT,
-							util:add_default_key(initfunc,[],
-								util:add_default_key(runfunc,[],
-									util:add_default_key(priority,10000,A))))))))).
+	util:complete(A,[{name,task},{period,50000},{exe,15000},{mode,waiting},{run,frozen},
+					{manager,?GEN_EVENT},{initfunc,[]},{runfunc,[]},{priority,10000}]).
 
 insert_task(A,T) ->
 	case proplists:get_value(run,A) of
@@ -178,19 +239,19 @@ schedule(List = [Task = {Prio,_Period,Name}|Q],T,CurTask,Susp) ->
 	{NewCurtask,AddSusp} = case CurTask of
 		{CurPrio,_CurPer,_CurName} when CurPrio =< Prio ->
 			R = [task:schedule_suspend(X) || {_Prio,_Per,X} <- List ],
-			io:format("~p --> tasks schedule_suspend : ~p~n",[T, R]),
+			util:log({T,scheduler,[schedule_suspend,R]}),
 			{CurTask,List};
 		CurTask ->
 			case CurTask of
 				none -> ok;
 				{_CurPrio,_CurPer,CurName} ->
 					R1 = task:suspend(CurName),
-					io:format("~p --> task suspend : ~p~n",[T, R1])
+					util:log({T,scheduler,[suspend,R1]})
 				end,
 			R2 = task:schedule(Name),
-			io:format("~p --> task schedule : ~p~n",[T, R2]),
+			util:log({T,scheduler,[schedule,R2]}),
 			R3 = [task:schedule_suspend(X) || {_Prio,_Per,X} <- Q ],
-			io:format("~p --> task schedule_suspend : ~p~n",[T, R3]),
+			util:log({T,scheduler,[schedule_suspend,R3]}),
 			ets:delete(task,T),
 			{Task,[CurTask|Q]}
 	end,
@@ -200,3 +261,19 @@ schedule(List = [Task = {Prio,_Period,Name}|Q],T,CurTask,Susp) ->
 merge_suspend(L1,L2) ->
 	lists:sort([X || X <- L1++L2, X =/= none]).
 
+init_tasks(Tasks) ->
+	[M:F(complete(A)) || {M,F,A} <- Tasks],
+	ets:new(task,[named_table,ordered_set]),
+	[insert_task(complete(A),0) || {_,_,A} <- Tasks].
+
+init_plc(Props) ->
+	M = util:update(Props,?PLC),
+	io:format("Plc : ~p~n",[M]),
+	M.
+tick(T,CurTask,Suspended) ->
+	{NewCurTask,NewSusp} = case ets:lookup(task,T) of
+		[{T,List}] -> schedule(List,T,CurTask,Suspended);
+		[] -> {CurTask,Suspended}
+	end,
+	gen_event:notify(?GEN_EVENT,{tick,T}),
+	{NewCurTask,NewSusp}.

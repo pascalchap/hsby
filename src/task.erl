@@ -7,7 +7,7 @@
 -include("hsby.hrl").
 
 %% export interfaces
--export([start/1,schedule/1,suspend/1,resume/1,schedule_suspend/1,progress/1,progress_init/1]).
+-export([start/1,schedule/1,suspend/1,resume/1,schedule_suspend/1]).
 
 %% export callbacks
 -export([init/1, handle_event/2, handle_call/2, handle_info/2, terminate/2, code_change/3]).
@@ -31,14 +31,6 @@ resume(Name) ->
 schedule_suspend(Name) ->
 	gen_event:call(plcmanager_event,{?MODULE,Name},schedule_suspend).
 
-progress([Task,_T]) ->
-	io:format("~p ... task ~p~n",[Task#task.remain,Task#task.name]),
-	Task.
-
-progress_init([Task]) ->
-	io:format("... init of task ~p~n",[Task#task.name]),
-	Task.
-
 
 %% CALLBACK FUNCTIONS %%
 %% @private
@@ -54,43 +46,57 @@ init(Args) ->
 	Priority = proplists:get_value(priority,Args),
 	Initfunc = get_func(proplists:get_value(initfunc,Args)),
 	Runfunc = get_func(proplists:get_value(runfunc,Args)),
-	Task = #task{ name=Name, period=Period, manager=Manager, mode=Mode, run=Run, exe=Exe,
-	                remain=Remain, priority=Priority, initfunc=Initfunc, runfunc=Runfunc},
+	Task = util:update([{name,Name}, {period,Period}, {manager,Manager}, {mode,Mode}, {run,Run}, {exe,Exe},
+		                {remain,Remain}, {priority,Priority}, {initfunc,Initfunc}, {runfunc,Runfunc}],maps:new()),
 	Task1 = lists:foldl(fun({M,F,A},Acc) -> M:F([Acc|A]) end, Task, Initfunc),
 	{ok, Task1}.
 
 
 %% @private
-handle_event({tick,V}, #task{name=Name, run=run, mode = exe, remain=Remain, exe=Exe} = Task) ->
-	%% io:format("task ~p received tick number ~p~n",[Name,_V]),
-	Task1 = lists:foldl(fun({_P,M,F,A},Acc) -> M:F([Acc,V|A]) end, Task,
-		lists:filter(fun({P,_M,_F,_A}) -> ((Exe * (100 - P)) div 100) == Remain end,Task#task.runfunc)),
-	NewRemain = Remain - 1,
-	NewMod = case (NewRemain >= 0) of
-		false ->
-			plcmanager:task_complete(Name),
-			waiting;
-		_ -> exe
+handle_event({tick,V}, Task) ->
+	case task_in(Task,[{run,run},{mode,exe}]) of
+		true ->
+			Remain = maps:get(remain,Task),
+			Task1 = lists:foldl(fun({_P,M,F,A},Acc) -> M:F([Acc,V|A]) end, Task,
+				lists:filter(fun({P,_M,_F,_A}) -> ((maps:get(exe,Task) * (100 - P)) div 100) == Remain end,maps:get(runfunc,Task))),
+			NewRemain = Remain - 1,
+			NewMod = case (NewRemain >= 0) of
+				false ->
+					plcmanager:task_complete(maps:get(name,Task)),
+					waiting;
+				_ -> exe
+			end,
+			{ok, util:update([{remain,NewRemain},{mode,NewMod}],Task1)};
+		_ -> {ok, Task}
+	end;
+handle_event({update_hrtbt,Hrtbt}, Task) ->
+	New_task = case task_in(Task,[{name,hrtbt}]) of
+		true ->
+			%% io:format("----->>>>> updating hrtbt frame to send~n"),
+			hrtbt:update_hrtbt(Hrtbt,Task);
+		_ -> Task
 	end,
-	{ok, Task1#task{remain=NewRemain,mode=NewMod}};
+	{ok, New_task};
 handle_event(_Event, Task) ->
 	{ok, Task}.
 
 %% @private
-handle_call(schedule, #task{run=run, mode = waiting, exe=Exe} = Task) ->
-	NewTask = Task#task{mode=exe,remain=Exe},
-	{ok,{scheduled,Task#task.name,Exe},NewTask};
-handle_call(schedule_suspend, #task{run=run, mode = waiting, exe=Exe} = Task) ->
-	NewTask = Task#task{mode=suspend,remain=Exe},
-	{ok,{schedule_suspend,Task#task.name,Exe},NewTask};
-handle_call(suspend, #task{run=run, mode = exe} = Task) ->
-	NewTask = Task#task{mode=suspend},
-	{ok,{suspend,Task#task.name,Task#task.remain},NewTask};
-handle_call(resume, #task{run=run, mode = suspend} = Task) ->
-	NewTask = Task#task{mode=exe},
-	{ok,{resume,Task#task.name,Task#task.remain},NewTask};
-handle_call(Request, Task) ->
-	io:format("task received unexpected request ~p while in state ~n~p~n",[Request,Task]),
+handle_call(schedule, Task) ->
+	true = task_in(Task,[{run,run},{mode,waiting}]),
+	Exe = maps:get(exe,Task),
+	{ok,{scheduled,maps:get(name,Task),Exe},util:update([{mode,exe},{remain,Exe}],Task)};
+handle_call(schedule_suspend, Task) ->
+	true = task_in(Task,[{run,run},{mode,waiting}]),
+	Exe = maps:get(exe,Task),
+	{ok,{schedule_suspend,maps:get(name,Task),Exe},util:update([{mode,suspend},{remain,Exe}],Task)};
+handle_call(suspend, Task) ->
+	true = task_in(Task,[{run,run},{mode,exe}]),
+	{ok,{suspend,maps:get(name,Task),maps:get(remain,Task)},util:update({mode,suspend},Task)};
+handle_call(resume, Task) ->
+	true = task_in(Task,[{run,run},{mode,suspend}]),
+	{ok,{resume,maps:get(name,Task),maps:get(remain,Task)},util:update({mode,exe},Task)};
+handle_call(_Request, Task) ->
+	%% io:format("task received unexpected request ~p while in state ~n~p~n",[_Request,Task]),
 	{ok, reply, Task}.
 
 %% @private
@@ -109,3 +115,10 @@ code_change(_OldVsn, Task, _Extra) ->
 
 get_func(A) when is_list(A) -> A;
 get_func({M,F}) -> M:F(). 
+
+task_in(_T,[]) -> true;
+task_in(T,[{K,V}|Q]) ->
+	case maps:get(K,T) of
+		V -> task_in(T,Q);
+		_ -> false
+	end.

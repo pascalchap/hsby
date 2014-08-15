@@ -22,38 +22,38 @@ runfunc() ->
 	].
 
 init([Arg,Tag]) -> 
-	io:format("......... safe ~p ~n",[Tag]),
-	Arg#task{func=Tag}.
+	util:log({init,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 send_app_data([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 input([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 exe([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 exchange([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 compare([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 blackchannel([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 out([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 
 interscan([Arg,T,Tag]) -> 
-	io:format("......... safe ~p (time ~p, progress ~p)~n",[Tag,T,Arg#task.remain]),
-	Arg#task{func=Tag}.
+	util:log({T,safe,[Tag,maps:get(remain,Arg)]}),
+	maps:put(func,Tag,Arg).
 

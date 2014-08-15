@@ -6,10 +6,8 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {diag=#diag{}}).
-
 %% export interfaces
--export([start_link/1,get_diag/0]).
+-export([start_link/1,get_diag/0,update_hrtbt/1]).
 
 %% export callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -21,6 +19,9 @@ start_link(Args) ->
 
 get_diag() ->
 	gen_server:call(?SERVER,{get_diag}).
+
+update_hrtbt(Hrtbt) ->
+	gen_server:cast(?SERVER,{update_hrtbt,Hrtbt}).
 
 %% CALLBACK FUNCTIONS %%
 %% @private
@@ -36,7 +37,7 @@ get_diag() ->
 %%		Reason = term()
 
 init(_Args) ->
-	{ok, #state{}}.
+	{ok, ?DIAG}.
 
 %%	handle_call(Request, From, State) -> Result
 %%		
@@ -54,11 +55,13 @@ init(_Args) ->
 %%		Timeout = int()>=0 | infinity
 %%		Reason = term()
 
-handle_call({get_diag}, _From, #state{diag = Diag} = State) ->
-	Diag1 = Diag#diag{count = Diag#diag.count + 1},
-	{reply, Diag1, State#state{diag=Diag1}};
-handle_call(_Request, _From, State) ->
-	{reply, {error, unknown_call}, State}.
+handle_call({get_diag}, _From, Diag) ->
+	CpuState = plcmanager:get_plc_state(),
+	NewCount = maps:get(count,Diag) + 1,
+	NewDiag = util:update([{cpu_state,CpuState},{count,NewCount}],Diag),
+	{reply, NewDiag, NewDiag};
+handle_call(_Request, _From, Diag) ->
+	{reply, {error, unknown_call}, Diag}.
 
 %%	handle_cast(Request, State) -> Result
 %%	
@@ -72,8 +75,10 @@ handle_call(_Request, _From, State) ->
 %%		Timeout = int()>=0 | infinity
 %%		Reason = term()
 
-handle_cast(_Msg, State) ->
-	{noreply, State}.
+handle_cast({update_hrtbt,Hrtbt}, Diag) ->
+	{noreply, util:update({hrtbt,Hrtbt},Diag)};
+handle_cast(_Msg, Diag) ->
+	{noreply, Diag}.
 
 %%	handle_info(Info, State) -> Result
 %%	
@@ -87,8 +92,8 @@ handle_cast(_Msg, State) ->
 %%		Timeout = int()>=0 | infinity
 %%		Reason = normal | term()
 
-handle_info(_Info, State) ->
-	{noreply, State}.
+handle_info(_Info, Diag) ->
+	{noreply, Diag}.
 
 %%	terminate(Reason, State)
 %%	
@@ -96,7 +101,7 @@ handle_info(_Info, State) ->
 %%		Reason = normal | shutdown | {shutdown,term()} | term()
 %%		State = term()
 
-terminate(_Reason, _State) ->
+terminate(_Reason, _Diag) ->
 	ok.
 
 %%	code_change(OldVsn, State, Extra) -> {ok, NewState} | {error, Reason}
@@ -108,7 +113,7 @@ terminate(_Reason, _State) ->
 %%		Extra = term()
 %%		Reason = term()
 
-code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+code_change(_OldVsn, Diag, _Extra) ->
+	{ok, Diag}.
 
 %% LOCAL FUNCTIONS %%
