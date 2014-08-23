@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxFrame" name="MyFrame1">
+		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<title></title>
+		<centered>1</centered>
+		<aui_managed>0</aui_managed>
+		<object class="wxMenuBar" name="m_menubar1">
+			<label>MyMenuBar</label>
+			<object class="wxMenu" name="m_menu1">
+				<label>File</label>
+				<object class="wxMenuItem" name="m_menuItem1">
+					<label>Load Config</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem2">
+					<label>Store Config</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="m_menuItem3">
+					<label>Select Log File</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="m_menu2">
+				<label>Debug</label>
+				<object class="wxMenuItem" name="m_menuItem4">
+					<label>Start Log</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem5">
+					<label>Continue Log</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem6">
+					<label>Stop Log</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="m_menuItem8">
+					<label>log Hrtbt</label>
+					<help></help>
+					<checked>1</checked>
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem9">
+					<label>Log fast</label>
+					<help></help>
+					<checked>1</checked>
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem10">
+					<label>Log safe</label>
+					<help></help>
+					<checked>1</checked>
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem11">
+					<label>Log mast</label>
+					<help></help>
+					<checked>1</checked>
+					<checkable>1</checkable>
+				</object>
+				<object class="wxMenuItem" name="m_menuItem12">
+					<label>Log states</label>
+					<help></help>
+					<checked>1</checked>
+					<checkable>1</checkable>
+				</object>
+			</object>
+		</object>
+		<object class="wxToolBar" name="m_toolBar1">
+			<style>wxTB_HORIZONTAL</style>
+			<bitmapsize></bitmapsize>
+			<margins></margins>
+			<packing>1</packing>
+			<separation>5</separation>
+			<object class="tool" name="m_tool1">
+				<label>tool</label>
+				<tooltip></tooltip>
+				<longhelp></longhelp>
+				<bitmap>m580.png</bitmap>
+			</object>
+		</object>
+		<object class="wxStatusBar" name="m_statusBar1">
+			<style>wxST_SIZEGRIP</style>
+			<fields>1</fields>
+		</object>
+		<object class="wxBoxSizer">
+			<orient>wxHORIZONTAL</orient>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL</flag>
+				<border>5</border>
+				<object class="wxGridSizer">
+					<minsize>210,210</minsize>
+					<rows>3</rows>
+					<cols>3</cols>
+					<vgap>4</vgap>
+					<hgap>4</hgap>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText10">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText101">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText102">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText103">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText104">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText105">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText106">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText107">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText108">
+							<style>wxRAISED_BORDER</style>
+							<label>MyLabel</label>
+							<wrap>-1</wrap>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText11">
+									<style>wxALIGN_RIGHT</style>
+									<size>60,-1</size>
+									<bg>#ababab</bg>
+									<label>time:</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxStaticBitmap" name="m_bitmap11">
+									<bg>#e0e0e0</bg>
+									<bitmap />
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText12">
+									<style>wxALIGN_RIGHT</style>
+									<size>60,-1</size>
+									<bg>#ababab</bg>
+									<label>hrtbt:</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxStaticBitmap" name="m_bitmap12">
+									<bg>#e0e0e0</bg>
+									<bitmap />
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText13">
+									<style>wxALIGN_RIGHT</style>
+									<size>60,-1</size>
+									<bg>#ababab</bg>
+									<label>fast:</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxStaticBitmap" name="m_bitmap13">
+									<bg>#e0e0e0</bg>
+									<bitmap />
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText14">
+									<style>wxALIGN_RIGHT</style>
+									<size>60,-1</size>
+									<bg>#ababab</bg>
+									<label>safe:</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxStaticBitmap" name="m_bitmap14">
+									<bg>#e0e0e0</bg>
+									<bitmap />
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="m_staticText1">
+									<style>wxALIGN_RIGHT</style>
+									<size>60,-1</size>
+									<bg>#ababab</bg>
+									<label>mast:</label>
+									<wrap>-1</wrap>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<object class="wxStaticBitmap" name="m_bitmap1">
+									<bg>#e0e0e0</bg>
+									<bitmap />
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+</resource>
