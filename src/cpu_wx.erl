@@ -27,7 +27,7 @@ start_link() ->
 start_link(W) ->
     {wx_ref,_Id,_WxType,Pid} = wx_object:start_link(?MODULE, [W,353], []),
     register(?SERVER,Pid),
-	?SERVER ! {tick,spawn_link(util,tick,[100,{?SERVER,refresh,[]}])},
+	?SERVER ! {tick,spawn_link(util,tick,[1000,{?SERVER,refresh,[]}])},
 	{ok,Pid}.
 
 refresh() ->
@@ -66,8 +66,7 @@ handle_call(What, _From, State) ->
     {stop, {call, What}, State}.
 
 handle_cast(refresh, State) ->
-	do_refresh(),
-    {noreply, State};
+    {noreply, do_draw(State)};
 handle_cast(_What, State) ->
     {noreply, State}.
     
@@ -98,7 +97,7 @@ create_window(W,H) ->
 	wxDC:setBackground(maps:get({"mast",dc},State),maps:get({"mast",bg},State)),
 	wxDC:setBrush(maps:get({"mast",dc},State),maps:get({"mast",bg},State)),
 	wxDC:setPen(maps:get({"mast",dc},State),maps:get({"mast",pen},State)),
-	wxDC:drawRectangle(maps:get({"mast",dc},State), {5,5}, {20,10}),
+	wxDC:drawRectangle(maps:get({"mast",dc},State), {5,5}, {50,20}),
     {Frame,State}.
 
 populate(Frame,Map) ->
@@ -107,9 +106,6 @@ populate(Frame,Map) ->
     Elem2 = wx_lib:add_elems(cpu_wx_lib:info(),wxStaticText,Elem1),
     wx_lib:add_graphic(cpu_wx_lib:bitmaps(),Elem2).
 
-do_refresh() ->
-	lists:map(fun({X,_}) -> wxWindow:refresh(wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel),
-		                                     [{eraseBackground,false}]) end,cpu_wx_lib:bitmaps()).
 
 do_refresh(Panel,State) ->
 	DC = wxPaintDC:new(Panel),
@@ -119,3 +115,28 @@ do_refresh(Panel,State) ->
 	Size = wxPanel:getSize(Panel),
 	wxDC:blit(DC,{0,0},Size,MemoryDC,{0,0}),
 	wxPaintDC:destroy(DC).
+
+do_draw(State) ->
+	L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_} <- cpu_wx_lib:bitmaps()],
+	lists:foldl(fun(X,Acc) -> draw(X,0,Acc) end,State,L).
+
+draw(Panel,_Fun,State) ->
+	Name = wxPanel:getName(Panel),
+	DC = maps:get({Name,dc},State),
+	{W,H} = wxPanel:getSize(Panel),
+	NewDC = case wxMemoryDC:getSize(DC) of
+		{W,H} -> DC;
+		_ ->
+			DC1 = wxMemoryDC:new(wxBitmap:new(W,H)),
+			wxDC:setBackground(DC1,maps:get({Name,bg},State)),
+			wxDC:setBrush(DC1,maps:get({Name,bg},State)),
+			wxDC:setPen(DC1,maps:get({Name,pen},State)),
+			wxDC:clear(DC1),
+			wxDC:drawRectangle(DC1, {5,5}, {50,20}),
+			io:format("draw ~p size ~p~n",[Name,{W,H}]),
+			DC1
+	end,
+	wxWindow:refresh(Panel,[{eraseBackground,false}]),
+	maps:update({Name,dc},NewDC,State).
+
+

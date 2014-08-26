@@ -42,6 +42,7 @@ zoomout(S) ->
 	wxFrame:setStatusText(maps:get(frame,S),"To do : zoomout",[]),
 	S.
 zoomfit(S) -> 
+	cpu_wx:refresh(),
 	wxFrame:setStatusText(maps:get(frame,S),"To do : zoomfit",[]),
 	S.
 toend(S) -> 

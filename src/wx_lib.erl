@@ -35,7 +35,7 @@ add_graphic([{Name,FG}|T],Map) ->
 	{W,H} = wxWindow:getSize(Panel),
 	BM    = wxBitmap:new(W,H),
 	MDC   = wxMemoryDC:new(BM),
-	MBG   = wxMemoryDC:getBackground(MDC),
+	MBG   = wxBrush:new(wxPanel:getBackgroundColour(Panel)),
 	wxPanel:connect(Panel, paint, [callback]),
 	wxPanel:connect(Panel, erase_background, [{callback, fun(_,_) -> ok end}]),
 	Pen   = wxPen:new(FG,[{width, 2}]),
