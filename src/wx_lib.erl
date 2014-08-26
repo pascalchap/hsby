@@ -4,68 +4,43 @@
 -include("hsby.hrl").
 -include("hsby_wx.hrl").
 
--export([add_menu_bar/2,add_tool_bar/2,add_tool_bar/3]).
+-export([ld_xrc/2,get_id/1,add_elems/3,add_graphic/2]).
 
 %%  exported
 
-add_menu_bar(Frame,Menus) ->
-    MenuBar = wxMenuBar:new(),
-    [add_menu(MenuBar,Menu) || Menu <- Menus],
-    wxFrame:setMenuBar(Frame, MenuBar),
-    wxFrame:connect(Frame, command_menu_selected).
+ld_xrc({Name,_},Map) ->
+	ld_xrc(Name,Map);
+ld_xrc(Name,Map) when is_atom(Name) ->
+	ld_xrc(atom_to_list(Name),Map);
+ld_xrc(Name,Map) ->
+	Id = wxXmlResource:getXRCID(Name),
+	maps:put(Id,Name,Map).
 
+get_id({Name,_}) -> get_id(Name);
+get_id(Name) when is_atom(Name) -> get_id(atom_to_list(Name));
+get_id(Name) ->
+	wxXmlResource:getXRCID(Name).
 
-add_tool_bar(Frame,Tools) -> add_tool_bar(Frame,Tools,{48,48}).
-
-add_tool_bar(Frame,Tools,Size) ->
-	TB = wxFrame:createToolBar(Frame),
-	%%wxToolBar:setToolSeparation(TB,10),
-    wxToolBar:setToolBitmapSize(TB,Size),
-    [addtool(TB,Tool) || Tool <- Tools ],
-    wxToolBar:realize(TB),
-    wxFrame:setToolBar(Frame,TB).
-
-
-%% local
-%% menu
-add_menu(MB,{Title,Items}) ->
-	M = wxMenu:new([]),
-	[add_items(M,I) || I <- Items],
-    wxMenuBar:append(MB, M, Title).
-
-add_items(M,{radio,ID,Str,Checked}) ->
-    It = wxMenu:appendRadioItem(M, ID, Str),
-    case Checked of
-    	check -> wxMenuItem:check(It);
-    	_ -> ok
-    end;
-
-add_items(M,{check,ID,Str,Checked}) ->
-    It = wxMenu:appendCheckItem(M, ID, Str),
-    case Checked of
-    	check -> wxMenuItem:check(It);
-    	_ -> ok
-    end;
-add_items(M,separator) ->
-    wxMenu:appendSeparator(M);
-add_items(M,{normal,ID,Str}) ->
-    wxMenu:append(M, ID, Str).
-
-%% toolbar
-
-addtool(TB,{normal,ID,{File,Type}}) ->
-	Bitmap = wxBitmap:new(File, [{type,Type}]),
-    wxToolBar:addTool(TB,ID,Bitmap),
-    %% wxBitmap:destroy(Bitmap);
-    ok;
-addtool(TB,separator) ->
-	wxToolBar:addSeparator(TB);
-addtool(TB,{check,ID,Label,{FileEn,TypeEn}}) ->
-	BitmapEn = wxBitmap:new(FileEn, [{type,TypeEn}]),
-    wxToolBar:addCheckTool(TB,ID,Label,BitmapEn),
-    wxBitmap:destroy(BitmapEn);
-addtool(TB,{radio,ID,Label,{FileEn,TypeEn}}) ->
-	BitmapEn = wxBitmap:new(FileEn, [{type,TypeEn}]),
-    wxToolBar:addRadioTool(TB,ID,Label,BitmapEn),
-    wxBitmap:destroy(BitmapEn).
-
+add_elems([],_Type,Map) -> Map;
+add_elems([Name|T],Type,Map) ->
+	N = case Name of
+		{Nm,_} -> Nm;
+		Nm -> Nm
+	end,
+	add_elems(T,Type,maps:put(N,wx:typeCast(wxWindow:findWindowById(get_id(Name)),Type),Map)).
+	
+add_graphic([],Map) -> Map;
+add_graphic([{Name,FG}|T],Map) ->
+	Panel = wx:typeCast(wxWindow:findWindowById(get_id(Name)),wxPanel),
+	{W,H} = wxWindow:getSize(Panel),
+	BM    = wxBitmap:new(W,H),
+	MDC   = wxMemoryDC:new(BM),
+	MBG   = wxMemoryDC:getBackground(MDC),
+	wxPanel:connect(Panel, paint, [callback]),
+	wxPanel:connect(Panel, erase_background, [{callback, fun(_,_) -> ok end}]),
+	Pen   = wxPen:new(FG,[{width, 2}]),
+	Map1  = maps:put({Name,bm},BM,Map),
+	Map2  = maps:put({Name,dc},MDC,Map1),
+	Map3  = maps:put({Name,bg},MBG,Map2),
+	Map4  = maps:put({Name,pen},Pen,Map3),
+	add_graphic(T,Map4).

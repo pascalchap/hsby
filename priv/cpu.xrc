@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
-	<object class="wxFrame" name="MyFrame1">
+	<object class="wxFrame" name="cpu_frame">
 		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<size>806,453</size>
 		<title></title>
 		<centered>1</centered>
 		<aui_managed>0</aui_managed>
@@ -9,61 +10,65 @@
 			<label>MyMenuBar</label>
 			<object class="wxMenu" name="m_menu1">
 				<label>File</label>
-				<object class="wxMenuItem" name="m_menuItem1">
+				<object class="wxMenuItem" name="loadconfig">
 					<label>Load Config</label>
 					<help></help>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem2">
+				<object class="wxMenuItem" name="storeconfig">
 					<label>Store Config</label>
 					<help></help>
 				</object>
 				<object class="separator" />
-				<object class="wxMenuItem" name="m_menuItem3">
+				<object class="wxMenuItem" name="selectlog">
 					<label>Select Log File</label>
 					<help></help>
 				</object>
 			</object>
 			<object class="wxMenu" name="m_menu2">
 				<label>Debug</label>
-				<object class="wxMenuItem" name="m_menuItem4">
+				<object class="wxMenuItem" name="startlog">
 					<label>Start Log</label>
 					<help></help>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem5">
+				<object class="wxMenuItem" name="contlog">
 					<label>Continue Log</label>
 					<help></help>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem6">
+				<object class="wxMenuItem" name="stoplog">
 					<label>Stop Log</label>
 					<help></help>
 				</object>
+				<object class="wxMenuItem" name="clrlog">
+					<label>Clear Log</label>
+					<help></help>
+				</object>
 				<object class="separator" />
-				<object class="wxMenuItem" name="m_menuItem8">
+				<object class="wxMenuItem" name="loghrtbt">
 					<label>log Hrtbt</label>
 					<help></help>
 					<checked>1</checked>
 					<checkable>1</checkable>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem9">
-					<label>Log fast</label>
+				<object class="wxMenuItem" name="logfast">
+					<label>Log Fast</label>
 					<help></help>
 					<checked>1</checked>
 					<checkable>1</checkable>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem10">
-					<label>Log safe</label>
+				<object class="wxMenuItem" name="logsafe">
+					<label>Log Safe</label>
 					<help></help>
 					<checked>1</checked>
 					<checkable>1</checkable>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem11">
-					<label>Log mast</label>
+				<object class="wxMenuItem" name="logmast">
+					<label>Log Mast</label>
 					<help></help>
 					<checked>1</checked>
 					<checkable>1</checkable>
 				</object>
-				<object class="wxMenuItem" name="m_menuItem12">
-					<label>Log states</label>
+				<object class="wxMenuItem" name="logstates">
+					<label>Log States</label>
 					<help></help>
 					<checked>1</checked>
 					<checkable>1</checkable>
@@ -76,11 +81,43 @@
 			<margins></margins>
 			<packing>1</packing>
 			<separation>5</separation>
-			<object class="tool" name="m_tool1">
+			<object class="tool" name="plc_sum">
+				<label>tool</label>
+				<tooltip>Display a summary of PLC state</tooltip>
+				<longhelp></longhelp>
+				<bitmap>m580.png</bitmap>
+			</object>
+			<object class="separator" />
+			<object class="tool" name="zoomin">
 				<label>tool</label>
 				<tooltip></tooltip>
 				<longhelp></longhelp>
-				<bitmap>m580.png</bitmap>
+				<bitmap>zoomin.png</bitmap>
+			</object>
+			<object class="tool" name="zoomout">
+				<label>tool</label>
+				<tooltip></tooltip>
+				<longhelp></longhelp>
+				<bitmap>zoomout.png</bitmap>
+			</object>
+			<object class="tool" name="zoomfit">
+				<label>tool</label>
+				<tooltip></tooltip>
+				<longhelp></longhelp>
+				<bitmap>zoomfit.png</bitmap>
+			</object>
+			<object class="separator" />
+			<object class="tool" name="tostart">
+				<label>tool</label>
+				<tooltip></tooltip>
+				<longhelp></longhelp>
+				<bitmap>tostart.png</bitmap>
+			</object>
+			<object class="tool" name="toend">
+				<label>tool</label>
+				<tooltip></tooltip>
+				<longhelp></longhelp>
+				<bitmap>toend.png</bitmap>
 			</object>
 		</object>
 		<object class="wxStatusBar" name="m_statusBar1">
@@ -103,9 +140,9 @@
 						<option>0</option>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText10">
+						<object class="wxStaticText" name="runstop">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label>Run</label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -113,9 +150,9 @@
 						<option>0</option>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText101">
+						<object class="wxStaticText" name="hsby">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label>Primary</label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -123,9 +160,9 @@
 						<option>0</option>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
-						<object class="wxStaticText" name="m_staticText102">
+						<object class="wxStaticText" name="power">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label>ON</label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -135,7 +172,7 @@
 						<border>5</border>
 						<object class="wxStaticText" name="m_staticText103">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -145,7 +182,7 @@
 						<border>5</border>
 						<object class="wxStaticText" name="m_staticText104">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -155,7 +192,7 @@
 						<border>5</border>
 						<object class="wxStaticText" name="m_staticText105">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -165,7 +202,7 @@
 						<border>5</border>
 						<object class="wxStaticText" name="m_staticText106">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -175,7 +212,7 @@
 						<border>5</border>
 						<object class="wxStaticText" name="m_staticText107">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -185,7 +222,7 @@
 						<border>5</border>
 						<object class="wxStaticText" name="m_staticText108">
 							<style>wxRAISED_BORDER</style>
-							<label>MyLabel</label>
+							<label></label>
 							<wrap>-1</wrap>
 						</object>
 					</object>
@@ -217,11 +254,11 @@
 							</object>
 							<object class="sizeritem">
 								<option>1</option>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxEXPAND | wxALL</flag>
 								<border>5</border>
-								<object class="wxStaticBitmap" name="m_bitmap11">
-									<bg>#e0e0e0</bg>
-									<bitmap />
+								<object class="wxPanel" name="time_scale">
+									<style>wxTAB_TRAVERSAL</style>
+									<bg>#606060</bg>
 								</object>
 							</object>
 						</object>
@@ -246,11 +283,11 @@
 							</object>
 							<object class="sizeritem">
 								<option>1</option>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxEXPAND | wxALL</flag>
 								<border>5</border>
-								<object class="wxStaticBitmap" name="m_bitmap12">
-									<bg>#e0e0e0</bg>
-									<bitmap />
+								<object class="wxPanel" name="hrtbt">
+									<style>wxTAB_TRAVERSAL</style>
+									<bg>#d0d0d0</bg>
 								</object>
 							</object>
 						</object>
@@ -275,11 +312,11 @@
 							</object>
 							<object class="sizeritem">
 								<option>1</option>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxEXPAND | wxALL</flag>
 								<border>5</border>
-								<object class="wxStaticBitmap" name="m_bitmap13">
-									<bg>#e0e0e0</bg>
-									<bitmap />
+								<object class="wxPanel" name="fast">
+									<style>wxTAB_TRAVERSAL</style>
+									<bg>#d0d0d0</bg>
 								</object>
 							</object>
 						</object>
@@ -304,11 +341,11 @@
 							</object>
 							<object class="sizeritem">
 								<option>1</option>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxEXPAND | wxALL</flag>
 								<border>5</border>
-								<object class="wxStaticBitmap" name="m_bitmap14">
-									<bg>#e0e0e0</bg>
-									<bitmap />
+								<object class="wxPanel" name="safe">
+									<style>wxTAB_TRAVERSAL</style>
+									<bg>#d0d0d0</bg>
 								</object>
 							</object>
 						</object>
@@ -333,11 +370,11 @@
 							</object>
 							<object class="sizeritem">
 								<option>1</option>
-								<flag>wxALL|wxEXPAND</flag>
+								<flag>wxEXPAND | wxALL</flag>
 								<border>5</border>
-								<object class="wxStaticBitmap" name="m_bitmap1">
-									<bg>#e0e0e0</bg>
-									<bitmap />
+								<object class="wxPanel" name="mast">
+									<style>wxTAB_TRAVERSAL</style>
+									<bg>#d0d0d0</bg>
 								</object>
 							</object>
 						</object>
