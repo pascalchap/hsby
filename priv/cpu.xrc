@@ -246,7 +246,7 @@
 								<border>5</border>
 								<object class="wxStaticText" name="m_staticText11">
 									<style>wxALIGN_RIGHT</style>
-									<size>60,-1</size>
+									<size>60,25</size>
 									<bg>#ababab</bg>
 									<label>time:</label>
 									<wrap>-1</wrap>

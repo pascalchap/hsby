@@ -66,8 +66,7 @@ handle_event(#wx{event=E,id=I}, S) ->
 handle_call(update, _From, State) ->
     {reply, ok, do_draw(State)};
 handle_call(refresh, _From, State) ->
-	L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_} <- cpu_wx_lib:bitmaps()],
-	R = lists:foreach(fun(Panel) -> wxWindow:refresh(Panel,[{eraseBackground,false}]) end,L),
+	R = lists:foreach(fun(Panel) -> wxWindow:refresh(Panel,[{eraseBackground,false}]) end,maps:get(panels,State)),
     {reply, R, State};
 handle_call(What, _From, State) ->
     {stop, {call, What}, State}.
@@ -100,18 +99,16 @@ create_window(W,H) ->
     wxFrame:connect(Frame,command_menu_selected),
     wxFrame:connect(Frame,command_left_click),
     State = populate(Frame,Map),
-    %% io:format("~p~n",[State]),
-	wxDC:setBackground(maps:get({"mast",dc},State),maps:get({"mast",bg},State)),
-	wxDC:setBrush(maps:get({"mast",dc},State),maps:get({"mast",bg},State)),
-	wxDC:setPen(maps:get({"mast",dc},State),maps:get({"mast",pen},State)),
-	wxDC:drawRectangle(maps:get({"mast",dc},State), {5,5}, {50,20}),
     {Frame,State}.
 
 populate(Frame,Map) ->
     Elem = maps:put(frame,Frame,Map),
     Elem1 = wx_lib:add_elems(cpu_wx_lib:bitmaps(),wxPanel,Elem),
     Elem2 = wx_lib:add_elems(cpu_wx_lib:info(),wxStaticText,Elem1),
-    wx_lib:add_graphic(cpu_wx_lib:bitmaps(),Elem2).
+    Elem3 = wx_lib:add_graphic(cpu_wx_lib:bitmaps(),Elem2),
+    L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_,_} <- cpu_wx_lib:bitmaps()],
+    Elem4 = maps:put(panels,L,Elem3),
+    maps:put(bound,{0,500},Elem4).
 
 
 do_refresh(Panel,State) ->
@@ -124,8 +121,7 @@ do_refresh(Panel,State) ->
 	wxPaintDC:destroy(DC).
 
 do_draw(State) ->
-	L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_} <- cpu_wx_lib:bitmaps()],
-	lists:foldl(fun(X,Acc) -> draw(X,0,Acc) end,State,L).
+	lists:foldl(fun(X,Acc) -> draw(X,0,Acc) end,State,maps:get(panels,State)).
 
 draw(Panel,_Fun,State) ->
 	Name = wxPanel:getName(Panel),
@@ -141,8 +137,8 @@ draw(Panel,_Fun,State) ->
 			wxDC:setPen(DC1,maps:get({Name,pen},State)),
 			DC1
 	end,
-	wxDC:clear(NewDC),
-	wxDC:drawRectangle(NewDC, {5,5}, {50,20}),
+	{M,F} = maps:get({Name,func},State),
+	M:F(Name,NewDC,W,H,State),
 	maps:update({Name,dc},NewDC,State).
 
 

@@ -1423,7 +1423,7 @@
                                         <property name="pos"></property>
                                         <property name="resize">Resizable</property>
                                         <property name="show">1</property>
-                                        <property name="size">60,-1</property>
+                                        <property name="size">60,25</property>
                                         <property name="style">wxALIGN_RIGHT</property>
                                         <property name="subclass"></property>
                                         <property name="toolbar_pane">0</property>
