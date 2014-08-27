@@ -15,7 +15,7 @@ tick(P,M,F,A,Oper,V) ->
 	receive
 		stop -> {stopped_at,V}
 	after P ->
-		apply(M,F,Oper(A,V)),
+		catch apply(M,F,Oper(A,V)),
 		tick(P,M,F,A,Oper,V+1)
 	end.
 

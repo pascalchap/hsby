@@ -31,8 +31,8 @@ start_link(W) ->
 	{ok,Pid}.
 
 refresh() ->
-	ok = wx_object:call(?SERVER,refresh),
-	wx_object:cast(?SERVER,refresh).
+	ok = wx_object:call(?SERVER,update),
+	ok = wx_object:call(?SERVER,refresh).
 
 init([W,H]) ->
 	create_window(W,H).
@@ -63,14 +63,16 @@ handle_event(#wx{event=E,id=I}, S) ->
 	wxFrame:setStatusText(maps:get(frame,S),M,[]),
     {noreply,S}.
 
-handle_call(refresh, _From, State) ->
+handle_call(update, _From, State) ->
     {reply, ok, do_draw(State)};
+handle_call(refresh, _From, State) ->
+	L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_} <- cpu_wx_lib:bitmaps()],
+	R = lists:foreach(fun(Panel) -> wxWindow:refresh(Panel,[{eraseBackground,false}]) end,L),
+    {reply, R, State};
 handle_call(What, _From, State) ->
     {stop, {call, What}, State}.
 
 handle_cast(refresh, State) ->
-	L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_} <- cpu_wx_lib:bitmaps()],
-	lists:foreach(fun(Panel) -> wxWindow:refresh(Panel,[{eraseBackground,false}]) end,L),
     {noreply, State};
 handle_cast(_What, State) ->
     {noreply, State}.
