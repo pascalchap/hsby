@@ -32,15 +32,15 @@ add_elems([Name|T],Type,Map) ->
 add_graphic([],Map) -> Map;
 add_graphic([{Name,FG}|T],Map) ->
 	Panel = wx:typeCast(wxWindow:findWindowById(get_id(Name)),wxPanel),
-	{W,H} = wxWindow:getSize(Panel),
-	BM    = wxBitmap:new(W,H),
-	MDC   = wxMemoryDC:new(BM),
+	% {W,H} = wxWindow:getSize(Panel),
+	% BM    = wxBitmap:new(W,H),
+	MDC   = wxMemoryDC:new(wxBitmap:new()),
 	MBG   = wxBrush:new(wxPanel:getBackgroundColour(Panel)),
 	wxPanel:connect(Panel, paint, [callback]),
 	wxPanel:connect(Panel, erase_background, [{callback, fun(_,_) -> ok end}]),
 	Pen   = wxPen:new(FG,[{width, 2}]),
-	Map1  = maps:put({Name,bm},BM,Map),
-	Map2  = maps:put({Name,dc},MDC,Map1),
+	%Map1  = maps:put({Name,bm},BM,Map),
+	Map2  = maps:put({Name,dc},MDC,Map),
 	Map3  = maps:put({Name,bg},MBG,Map2),
 	Map4  = maps:put({Name,pen},Pen,Map3),
 	add_graphic(T,Map4).

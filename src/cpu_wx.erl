@@ -27,10 +27,11 @@ start_link() ->
 start_link(W) ->
     {wx_ref,_Id,_WxType,Pid} = wx_object:start_link(?MODULE, [W,353], []),
     register(?SERVER,Pid),
-	?SERVER ! {tick,spawn_link(util,tick,[1000,{?SERVER,refresh,[]}])},
+	?SERVER ! {tick,spawn_link(util,tick,[100,{?SERVER,refresh,[]}])},
 	{ok,Pid}.
 
 refresh() ->
+	ok = wx_object:call(?SERVER,refresh),
 	wx_object:cast(?SERVER,refresh).
 
 init([W,H]) ->
@@ -62,11 +63,15 @@ handle_event(#wx{event=E,id=I}, S) ->
 	wxFrame:setStatusText(maps:get(frame,S),M,[]),
     {noreply,S}.
 
+handle_call(refresh, _From, State) ->
+    {reply, ok, do_draw(State)};
 handle_call(What, _From, State) ->
     {stop, {call, What}, State}.
 
 handle_cast(refresh, State) ->
-    {noreply, do_draw(State)};
+	L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_} <- cpu_wx_lib:bitmaps()],
+	lists:foreach(fun(Panel) -> wxWindow:refresh(Panel,[{eraseBackground,false}]) end,L),
+    {noreply, State};
 handle_cast(_What, State) ->
     {noreply, State}.
     
@@ -127,16 +132,15 @@ draw(Panel,_Fun,State) ->
 	NewDC = case wxMemoryDC:getSize(DC) of
 		{W,H} -> DC;
 		_ ->
+			wxMemoryDC:destroy(DC),
 			DC1 = wxMemoryDC:new(wxBitmap:new(W,H)),
 			wxDC:setBackground(DC1,maps:get({Name,bg},State)),
 			wxDC:setBrush(DC1,maps:get({Name,bg},State)),
 			wxDC:setPen(DC1,maps:get({Name,pen},State)),
-			wxDC:clear(DC1),
-			wxDC:drawRectangle(DC1, {5,5}, {50,20}),
-			io:format("draw ~p size ~p~n",[Name,{W,H}]),
 			DC1
 	end,
-	wxWindow:refresh(Panel,[{eraseBackground,false}]),
+	wxDC:clear(NewDC),
+	wxDC:drawRectangle(NewDC, {5,5}, {50,20}),
 	maps:update({Name,dc},NewDC,State).
 
 
