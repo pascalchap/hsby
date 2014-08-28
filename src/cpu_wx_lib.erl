@@ -38,20 +38,22 @@ plc_sum(S) ->
 	wxFrame:setStatusText(maps:get(frame,S),"To do : plc_sum",[]),
 	S.
 zoomin(S) -> 
-	wxFrame:setStatusText(maps:get(frame,S),"To do : zoomin",[]),
-	S.
+	Bound = maps:get(bound,S),
+	maps:put(bound,zoom(Bound,0.8),S).
 zoomout(S) -> 
-	wxFrame:setStatusText(maps:get(frame,S),"To do : zoomout",[]),
-	S.
+	Bound = maps:get(bound,S),
+	maps:put(bound,zoom(Bound,1.2),S).
 zoomfit(S) -> 
-	wxFrame:setStatusText(maps:get(frame,S),"To do : zoomfit",[]),
-	S.
+	Tmin = ets:first(hrtbt),
+	Tmax = maps:get(time,S),
+	maps:put(bound,{Tmin,Tmax,floating},S).
 toend(S) -> 
-	wxFrame:setStatusText(maps:get(frame,S),"To do : toend",[]),
-	S.
+	{Tmin,Tmax,_Type} = maps:get(bound,S),
+	Tc = maps:get(time,S),
+	maps:put(bound,{Tc + Tmin - Tmax,Tc,floating},S).
 tostart(S) -> 
-	wxFrame:setStatusText(maps:get(frame,S),"To do : tostart",[]),
-	S.
+	{Tmin,Tmax,_Type} = maps:get(bound,S),
+	maps:put(bound,{0, Tmax - Tmin, fixed},S).
 loadconfig(S) -> 
 	wxFrame:setStatusText(maps:get(frame,S),"To do : loadconfig",[]),
 	S.
@@ -110,9 +112,14 @@ draw_state(Name,DC,W,H,State) ->
 	Tmax = max(T,Tmin + 10),
 	MS = ets:fun2ms(fun({Tx,Sx}) when Tx >= Tmin, Tx =< Tmax -> {Tx,Sx} end),
 	%% Aff = cleanup([{Tx,Sx} || {Tx,scheduler,[Sx,Nx]} <- log:get(), Na == Nx, Tx >= Tmin, Tx =< Tmax],[]),
-	[{Ts,Ss}|_Q] = Aff = ets:select(Na,MS),
-	{LastT,LastPos} = initPos(Ts,Ss,Tmin,ets:prev(Na,Tmin),Na),
-	plot(DC,W,Tmin,Tmax,Tmax-Tmin,Hl,Hm,Hh,LastT,pos(LastPos,Hl,Hm,Hh),Aff).
+	Aff = ets:select(Na,MS),
+	case {Aff,ets:prev(Na,Tmin)} of
+		{[{Ts,Ss}|_Q],Tp} ->	{LastT,LastPos} = initPos(Ts,Ss,Tmin,Tp,Na),
+								plot(DC,W,Tmin,Tmax,Tmax-Tmin,Hl,Hm,Hh,LastT,pos(LastPos,Hl,Hm,Hh),Aff);
+		{[],Tp} -> 				[{_,S}] = ets:lookup(Na,Tp),
+								plot(DC,W,Tmin,Tmax,Tmax-Tmin,Hl,Hm,Hh,Tp,pos(S,Hl,Hm,Hh),Aff);
+		_ -> ok
+	end.
 
 plot(DC,W,Tmin,_Tmax,Delta,_Hl,_Hm,_Hh,LastT,LastPos,[]) ->
 	Xs = 2 + ((LastT-Tmin) * (W-4)) div Delta,
@@ -135,3 +142,20 @@ pos(schedule_suspend,_Hl,Hm,_Hh) -> Hm.
 
 initPos(Ts,Ss,_Tmin,'$end_of_table',_Na) -> {Ts,Ss};
 initPos(_Ts,_Ss,Tmin,T,Na) -> [{_,S}] = ets:lookup(Na,T), {Tmin,S}.
+
+
+zoom({Tmin,Tmax,floating},R) ->
+	Nd = round(R*(Tmax - Tmin)),
+	case Nd >= Tmax of
+		true -> {0,Nd,floating};
+		false -> {Tmax - Nd, Tmax,floating}
+	end;
+zoom({Tmin,Tmax,fixed},R) ->
+	Nd = round(R*(Tmax - Tmin)) div 2,
+	T = Tmin - Nd,
+	case T >= 0 of
+		true -> {T,Tmax + Nd,fixed};
+		false -> {0,2*Nd,fixed}
+	end.
+
+
