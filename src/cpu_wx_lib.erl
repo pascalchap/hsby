@@ -5,7 +5,7 @@
 -include("hsby.hrl").
 
 -export([items/0,info/0,bitmaps/0,
-	plc_sum/1,zoomin/1,zoomout/1,zoomfit/1,toend/1,tostart/1,loadconfig/1,storeconfig/1,
+	plc_sum/1,zoomin/1,zoomout/1,zoomfit/1,toend/1,tostart/1,freeze/1,rewind/1,forward/1,loadconfig/1,storeconfig/1,
 	selectlog/1,startlog/1,contlog/1,stoplog/1,clrlog/1,loghrtbt/1,logfast/1,logsafe/1,logmast/1,
 	logstates/1,
 	draw_state/5,draw_time/5
@@ -16,7 +16,7 @@ items() ->
 	info() ++ bitmaps() ++
 	[cpu_frame,
 	%% commands
-	plc_sum, zoomin, zoomout, zoomfit, toend, tostart, loadconfig, storeconfig, selectlog, startlog,
+	plc_sum, zoomin, zoomout, zoomfit, toend, rewind, freeze, forward, tostart, loadconfig, storeconfig, selectlog, startlog,
 	contlog, stoplog, clrlog, loghrtbt, logfast, logsafe, logmast, logstates
 	].
 
@@ -54,6 +54,17 @@ toend(S) ->
 tostart(S) -> 
 	{Tmin,Tmax,_Type} = maps:get(bound,S),
 	maps:put(bound,{0, Tmax - Tmin, fixed},S).
+freeze(S) -> 
+	{Tmin,Tmax,Type} = maps:get(bound,S),
+	maps:put(bound,{Tmin, Tmax, toggle(Type)},S).
+rewind(S) -> 
+	{Tmin,Tmax,_Type} = maps:get(bound,S),
+	D = min(round((Tmax - Tmin) * 0.75),Tmin),
+	maps:put(bound,{Tmin - D, Tmax - D, fixed},S).
+forward(S) -> 
+	{Tmin,Tmax,Type} = maps:get(bound,S),
+	D = round((Tmax - Tmin) * 0.75),
+	maps:put(bound,{Tmin + D, Tmax + D, Type},S).
 loadconfig(S) -> 
 	wxFrame:setStatusText(maps:get(frame,S),"To do : loadconfig",[]),
 	S.
@@ -145,17 +156,18 @@ initPos(_Ts,_Ss,Tmin,T,Na) -> [{_,S}] = ets:lookup(Na,T), {Tmin,S}.
 
 
 zoom({Tmin,Tmax,floating},R) ->
-	Nd = round(R*(Tmax - Tmin)),
+	Nd = max(round(R*(Tmax - Tmin)),10),
 	case Nd >= Tmax of
 		true -> {0,Nd,floating};
 		false -> {Tmax - Nd, Tmax,floating}
 	end;
 zoom({Tmin,Tmax,fixed},R) ->
-	Nd = round(R*(Tmax - Tmin)) div 2,
+	Nd = max(round(R*(Tmax - Tmin)) div 2 , 5),
 	T = Tmin - Nd,
 	case T >= 0 of
 		true -> {T,Tmax + Nd,fixed};
 		false -> {0,2*Nd,fixed}
 	end.
 
-
+toggle(floating) -> fixed;
+toggle(fixed) -> floating.

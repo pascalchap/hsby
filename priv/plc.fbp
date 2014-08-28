@@ -444,7 +444,7 @@
                     <property name="name">zoomin</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">look closer</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -465,7 +465,7 @@
                     <property name="name">zoomout</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">look less close</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -486,7 +486,7 @@
                     <property name="name">zoomfit</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">show the whole trace and un-freeze</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -510,7 +510,70 @@
                     <property name="name">tostart</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">go to the start and freeze</property>
+                    <event name="OnAuiToolBarBeginDrag"></event>
+                    <event name="OnAuiToolBarMiddleClick"></event>
+                    <event name="OnAuiToolBarOverflowClick"></event>
+                    <event name="OnAuiToolBarRightClick"></event>
+                    <event name="OnAuiToolBarToolDropDown"></event>
+                    <event name="OnMenuSelection"></event>
+                    <event name="OnToolClicked"></event>
+                    <event name="OnToolEnter"></event>
+                    <event name="OnToolRClicked"></event>
+                    <event name="OnUpdateUI"></event>
+                </object>
+                <object class="tool" expanded="1">
+                    <property name="bitmap">Load From File; rewind.png</property>
+                    <property name="context_menu">0</property>
+                    <property name="id">wxID_ANY</property>
+                    <property name="kind">wxITEM_NORMAL</property>
+                    <property name="label">tool</property>
+                    <property name="name">rewind</property>
+                    <property name="permission">protected</property>
+                    <property name="statusbar"></property>
+                    <property name="tooltip">rewind the view and freeze</property>
+                    <event name="OnAuiToolBarBeginDrag"></event>
+                    <event name="OnAuiToolBarMiddleClick"></event>
+                    <event name="OnAuiToolBarOverflowClick"></event>
+                    <event name="OnAuiToolBarRightClick"></event>
+                    <event name="OnAuiToolBarToolDropDown"></event>
+                    <event name="OnMenuSelection"></event>
+                    <event name="OnToolClicked"></event>
+                    <event name="OnToolEnter"></event>
+                    <event name="OnToolRClicked"></event>
+                    <event name="OnUpdateUI"></event>
+                </object>
+                <object class="tool" expanded="1">
+                    <property name="bitmap">Load From File; freeze.png</property>
+                    <property name="context_menu">0</property>
+                    <property name="id">wxID_ANY</property>
+                    <property name="kind">wxITEM_CHECK</property>
+                    <property name="label">tool</property>
+                    <property name="name">freeze</property>
+                    <property name="permission">protected</property>
+                    <property name="statusbar"></property>
+                    <property name="tooltip">freeze the view</property>
+                    <event name="OnAuiToolBarBeginDrag"></event>
+                    <event name="OnAuiToolBarMiddleClick"></event>
+                    <event name="OnAuiToolBarOverflowClick"></event>
+                    <event name="OnAuiToolBarRightClick"></event>
+                    <event name="OnAuiToolBarToolDropDown"></event>
+                    <event name="OnMenuSelection"></event>
+                    <event name="OnToolClicked"></event>
+                    <event name="OnToolEnter"></event>
+                    <event name="OnToolRClicked"></event>
+                    <event name="OnUpdateUI"></event>
+                </object>
+                <object class="tool" expanded="1">
+                    <property name="bitmap">Load From File; forward.png</property>
+                    <property name="context_menu">0</property>
+                    <property name="id">wxID_ANY</property>
+                    <property name="kind">wxITEM_NORMAL</property>
+                    <property name="label">tool</property>
+                    <property name="name">forward</property>
+                    <property name="permission">protected</property>
+                    <property name="statusbar"></property>
+                    <property name="tooltip">forward the view</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>
@@ -531,7 +594,7 @@
                     <property name="name">toend</property>
                     <property name="permission">protected</property>
                     <property name="statusbar"></property>
-                    <property name="tooltip"></property>
+                    <property name="tooltip">go to the end and un-freeze</property>
                     <event name="OnAuiToolBarBeginDrag"></event>
                     <event name="OnAuiToolBarMiddleClick"></event>
                     <event name="OnAuiToolBarOverflowClick"></event>

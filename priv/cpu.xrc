@@ -90,32 +90,51 @@
 			<object class="separator" />
 			<object class="tool" name="zoomin">
 				<label>tool</label>
-				<tooltip></tooltip>
+				<tooltip>look closer</tooltip>
 				<longhelp></longhelp>
 				<bitmap>zoomin.png</bitmap>
 			</object>
 			<object class="tool" name="zoomout">
 				<label>tool</label>
-				<tooltip></tooltip>
+				<tooltip>look less close</tooltip>
 				<longhelp></longhelp>
 				<bitmap>zoomout.png</bitmap>
 			</object>
 			<object class="tool" name="zoomfit">
 				<label>tool</label>
-				<tooltip></tooltip>
+				<tooltip>show the whole trace and un-freeze</tooltip>
 				<longhelp></longhelp>
 				<bitmap>zoomfit.png</bitmap>
 			</object>
 			<object class="separator" />
 			<object class="tool" name="tostart">
 				<label>tool</label>
-				<tooltip></tooltip>
+				<tooltip>go to the start and freeze</tooltip>
 				<longhelp></longhelp>
 				<bitmap>tostart.png</bitmap>
 			</object>
+			<object class="tool" name="rewind">
+				<label>tool</label>
+				<tooltip>rewind the view and freeze</tooltip>
+				<longhelp></longhelp>
+				<bitmap>rewind.png</bitmap>
+			</object>
+			<object class="tool" name="freeze">
+				<label>tool</label>
+				<tooltip>freeze the view</tooltip>
+				<longhelp></longhelp>
+				<bitmap>freeze.png</bitmap>
+				<toggle>1</toggle>
+			</object>
+			<object class="tool" name="forward">
+				<label>tool</label>
+				<tooltip>forward the view</tooltip>
+				<longhelp></longhelp>
+				<bitmap>forward.png</bitmap>
+			</object>
 			<object class="tool" name="toend">
 				<label>tool</label>
-				<tooltip></tooltip>
+				<tooltip>go to the end and un-freeze</tooltip>
 				<longhelp></longhelp>
 				<bitmap>toend.png</bitmap>
 			</object>
