@@ -9,7 +9,7 @@
 -define(STATE, #{time => 0, curtask => none, suspended => [], tick => undefined, plc => maps:new()}).
 
 %% export interfaces
--export([start_link/1,stop/1,task_complete/1,update_hrtbt_info/1,get_plc_state/0,tick/1]).
+-export([start_link/1,stop/1,task_complete/1,update_hrtbt_info/1,get_plc_state/0,tick/1,get_time/0]).
 
 %% export callbacks
 -export([init/1, handle_info/3, terminate/3, code_change/4, handle_event/3, handle_sync_event/4]).
@@ -38,6 +38,10 @@ get_plc_state() ->
 
 tick(T) ->
 	gen_fsm:send_event(?SERVER,{tick,T}).
+
+get_time() ->
+	gen_fsm:sync_send_all_state_event(?SERVER, get_time).
+
 %% CALLBACK FUNCTIONS %%
 %% @private
 %%	init(Args) -> Result
@@ -160,6 +164,8 @@ handle_event(_Event, StateName, State) ->
 
 handle_sync_event(get_plc_state, _From, StateName, State) ->
 	{reply, State, StateName, State};
+handle_sync_event(get_time, _From, StateName, State) ->
+	{reply, maps:get(time,State), StateName, State};
 handle_sync_event(_Event, _From, StateName, State) ->
 	{reply, ok, StateName, State}.
 

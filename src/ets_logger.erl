@@ -62,7 +62,6 @@ loop() ->
 		{T,scheduler,[State,Task]} ->
 			ets:insert(Task,{T,State}),
 			loop();
-		M -> 
-			io:format("ignore evet ~p~n",[M]),
+		_M ->
 			loop()
 	end.

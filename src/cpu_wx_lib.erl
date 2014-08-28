@@ -8,7 +8,7 @@
 	plc_sum/1,zoomin/1,zoomout/1,zoomfit/1,toend/1,tostart/1,loadconfig/1,storeconfig/1,
 	selectlog/1,startlog/1,contlog/1,stoplog/1,clrlog/1,loghrtbt/1,logfast/1,logsafe/1,logmast/1,
 	logstates/1,
-	draw_state/5,draw_time/5,pos/4
+	draw_state/5,draw_time/5
 	]).
 
 
@@ -91,7 +91,7 @@ logstates(S) ->
 
 draw_time(_Name,DC,W,H,State) ->
 	wxMemoryDC:clear(DC),
-	{Tmin,T} = maps:get(bound,State),
+	{Tmin,T,_Type} = maps:get(bound,State),
 	Tmax = max(T,Tmin + 10),
 	wxMemoryDC:drawLabel(DC,integer_to_list(Tmin),{3,0,30,10}),
 	wxMemoryDC:drawLabel(DC,integer_to_list(Tmax),{W-60,0,57,10},[{alignment, ?wxALIGN_RIGHT}]),
@@ -106,12 +106,13 @@ draw_state(Name,DC,W,H,State) ->
 	Hm = H div 2,
 	Hh = 4,
 	Na = list_to_existing_atom(Name),
-	{Tmin,T} = maps:get(bound,State),
+	{Tmin,T,_Type} = maps:get(bound,State),
 	Tmax = max(T,Tmin + 10),
 	MS = ets:fun2ms(fun({Tx,Sx}) when Tx >= Tmin, Tx =< Tmax -> {Tx,Sx} end),
 	%% Aff = cleanup([{Tx,Sx} || {Tx,scheduler,[Sx,Nx]} <- log:get(), Na == Nx, Tx >= Tmin, Tx =< Tmax],[]),
-	[{Ts,Ss}|Q] = ets:select(Na,MS),
-	plot(DC,W,Tmin,Tmax,Tmax-Tmin,Hl,Hm,Hh,Ts,pos(Ss,Hl,Hm,Hh),Q).
+	[{Ts,Ss}|_Q] = Aff = ets:select(Na,MS),
+	{LastT,LastPos} = initPos(Ts,Ss,Tmin,ets:prev(Na,Tmin),Na),
+	plot(DC,W,Tmin,Tmax,Tmax-Tmin,Hl,Hm,Hh,LastT,pos(LastPos,Hl,Hm,Hh),Aff).
 
 plot(DC,W,Tmin,_Tmax,Delta,_Hl,_Hm,_Hh,LastT,LastPos,[]) ->
 	Xs = 2 + ((LastT-Tmin) * (W-4)) div Delta,
@@ -132,6 +133,5 @@ pos(init,Hl,_Hm,_Hh) -> Hl;
 pos(suspend,_Hl,Hm,_Hh) -> Hm;
 pos(schedule_suspend,_Hl,Hm,_Hh) -> Hm.
 
-cleanup([H],R) -> lists:reverse([H|R]);
-cleanup([{T,_S},{T,S}|Q],R) -> cleanup([{T,S}|Q],R);
-cleanup([H|Q],R) -> cleanup(Q,[H|R]).
+initPos(Ts,Ss,_Tmin,'$end_of_table',_Na) -> {Ts,Ss};
+initPos(_Ts,_Ss,Tmin,T,Na) -> [{_,S}] = ets:lookup(Na,T), {Tmin,S}.

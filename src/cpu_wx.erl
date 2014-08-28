@@ -27,11 +27,12 @@ start_link() ->
 start_link(W) ->
     {wx_ref,_Id,_WxType,Pid} = wx_object:start_link(?MODULE, [W,353], []),
     register(?SERVER,Pid),
-	?SERVER ! {tick,spawn_link(util,tick,[100,{?SERVER,refresh,[]}])},
+	?SERVER ! {tick,spawn_link(util,tick,[75,{?SERVER,refresh,[]}])},
 	{ok,Pid}.
 
 refresh() ->
-	ok = wx_object:call(?SERVER,update),
+	Time = plcmanager:get_time(),
+	ok = wx_object:call(?SERVER,{update,Time}),
 	ok = wx_object:call(?SERVER,refresh).
 
 init([W,H]) ->
@@ -63,8 +64,8 @@ handle_event(#wx{event=E,id=I}, S) ->
 	wxFrame:setStatusText(maps:get(frame,S),M,[]),
     {noreply,S}.
 
-handle_call(update, _From, State) ->
-    {reply, ok, do_draw(State)};
+handle_call({update,Time}, _From, State) ->
+    {reply, ok, do_draw(Time,State)};
 handle_call(refresh, _From, State) ->
 	R = lists:foreach(fun(Panel) -> wxWindow:refresh(Panel,[{eraseBackground,false}]) end,maps:get(panels,State)),
     {reply, R, State};
@@ -107,8 +108,8 @@ populate(Frame,Map) ->
     Elem2 = wx_lib:add_elems(cpu_wx_lib:info(),wxStaticText,Elem1),
     Elem3 = wx_lib:add_graphic(cpu_wx_lib:bitmaps(),Elem2),
     L = [wx:typeCast(wxWindow:findWindowById(wx_lib:get_id(X)),wxPanel) || {X,_,_} <- cpu_wx_lib:bitmaps()],
-    Elem4 = maps:put(panels,L,Elem3),
-    maps:put(bound,{0,500},Elem4).
+    Elem4 = maps:put(time,0,maps:put(panels,L,Elem3)),
+    maps:put(bound,{0,500,floating},Elem4).
 
 
 do_refresh(Panel,State) ->
@@ -120,10 +121,12 @@ do_refresh(Panel,State) ->
 	wxDC:blit(DC,{0,0},Size,MemoryDC,{0,0}),
 	wxPaintDC:destroy(DC).
 
-do_draw(State) ->
-	lists:foldl(fun(X,Acc) -> draw(X,0,Acc) end,State,maps:get(panels,State)).
+do_draw(Time,State) ->
+	Bound = newBound(Time,maps:get(bound,State)),
+    NewState = maps:update(bound,Bound,maps:update(time,Time,State)),
+	lists:foldl(fun(X,Acc) -> draw(X,Acc) end,NewState,maps:get(panels,State)).
 
-draw(Panel,_Fun,State) ->
+draw(Panel,State) ->
 	Name = wxPanel:getName(Panel),
 	DC = maps:get({Name,dc},State),
 	{W,H} = wxPanel:getSize(Panel),
@@ -141,4 +144,6 @@ draw(Panel,_Fun,State) ->
 	M:F(Name,NewDC,W,H,State),
 	maps:update({Name,dc},NewDC,State).
 
-
+newBound(_,B = {_,_,fixed}) -> B;
+newBound(T,B = {_,Tmax,floating}) when Tmax >= T -> B;
+newBound(T,{Tmin,Tmax,floating}) -> {Tmin + T - Tmax,T,floating}.
